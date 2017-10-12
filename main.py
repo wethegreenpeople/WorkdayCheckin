@@ -3,6 +3,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.webdriver import FirefoxProfile
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 import time
 import getpass
 import os
@@ -24,21 +26,28 @@ def Login():
 		print("Logging In")
 		# Select TMCC
 		driver.get("https://sso.nevada.edu/landing.php")
-		driver.find_element_by_xpath("//img[@alt='TMCC']").click()
-		time.sleep(10)
-		elem = driver.find_element_by_id("okta-signin-username")
-		elem.clear()
-		elem.send_keys(username)
-		elem = driver.find_element_by_id("okta-signin-password")
-		elem.clear()
-		elem.send_keys(password)
-		elem.send_keys(Keys.ENTER)
-		time.sleep(10)
-		if (driver.title == "Nevada System of Higher Education (Hub) - My Applications"):
-			print("Logged in")
-		else:
-			print("Login failed")
+		try:
+			tmcc = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//img[@alt='TMCC']")))
+			tmcc.click()
+		except:
+			print("TMCC Not found")
 			Login()
+		try:
+			elem = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "okta-signin-username")))
+			elem.clear()
+			elem.send_keys(username)
+			elem = driver.find_element_by_id("okta-signin-password")
+			elem.clear()
+			elem.send_keys(password)
+			elem.send_keys(Keys.ENTER)
+		except:
+			print("Could not find username/password field")
+			Login()
+		try:
+			success = WebDriverWait(driver, 20).until(EC.title_is(("Nevada System of Higher Education (Hub) - My Applications")))
+			print("Logged in")
+		except:
+			print("Login Failed")
 	except:
 		print("Error. Please try again")
 		Login()
@@ -48,13 +57,21 @@ def CheckIn():
 	print("Navigating to Check in page")
 	# Enter Time page
 	driver.get("https://www.myworkday.com/nshe/d/home.htmld#selectedWorklet=501%24162")
-	time.sleep(10)
 	# Active NSHE member
-	driver.find_element_by_xpath("//div[@tabindex='-2']").click()
-	time.sleep(10)
+	try:
+		activeNshe = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@tabindex='-2']")))
+		activeNshe.click()
+	except:
+		print("Could not select 'Active NSHE Member'")
+		CheckIn()
 	print("Checking in")
 	# Check in button
-	driver.find_element_by_id("wd-DropDownCommandButton-56$234380").click()
+	try:
+		checkInButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "wd-DropDownCommandButton-56$234380")))
+		checkInButton.click()
+	except:
+		print("Could not click 'Check in'")
+		CheckIn()
 	time.sleep(10)
 	actions = ActionChains(driver)
 	actions.send_keys('Student Hours Worked')
@@ -62,27 +79,40 @@ def CheckIn():
 	actions = ActionChains(driver)
 	actions.send_keys(Keys.ENTER)
 	actions.perform()
-	time.sleep(10)
-	driver.find_element_by_xpath("//button[@title='OK']").click()
-	time.sleep(10)
-	driver.find_element_by_xpath("//button[@title='Done']").click()
+	try:
+		okButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@title='OK']")))
+		okButton.click()
+		doneButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@title='Done']")))
+		doneButton.click()
+	except:
+		print("Could not check in")
+		CheckIn()
 
 def CheckOut():
 	global driver
 	print("Navigating to Check in page")
 	# Enter Time page
 	driver.get("https://www.myworkday.com/nshe/d/home.htmld#selectedWorklet=501%24162")
-	time.sleep(10)
 	# Active NSHE member
-	driver.find_element_by_xpath("//div[@tabindex='-2']").click()
-	time.sleep(10)
+	try:
+		activeNshe = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@tabindex='-2']")))
+		activeNshe.click()
+	except:
+		print("Could not select 'Active NSHE Member'")
+		CheckOut()
 	print("Checking out")
-	driver.find_element_by_xpath("//button[@title='Check Out']").click()
-	time.sleep(10)
-	driver.find_element_by_xpath("//input[@id='gwt-uid-7']").click()
-	driver.find_element_by_xpath("//button[@title='OK']").click()
-	time.sleep(10)
-	driver.find_element_by_xpath("//button[@title='Done']").click()
+	try:
+		checkOutButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@title='Check Out']")))
+		checkOutButton.click()
+		clockOutRadio = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//input[@id='gwt-uid-7']")))
+		clockOutRadio.click()
+		okButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@title='OK']")))
+		okButton.click()
+		doneButton = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@title='Done']")))
+		doneButton.click()
+	except:
+		print("Could not check out")
+		time.sleep(1000000)
 
 def LogOut():
 	global driver
@@ -96,6 +126,7 @@ def LogOut():
 def AltTab():
 	ctypes.windll.user32.keybd_event(0x12, 0, 0, 0) #Alt
 	ctypes.windll.user32.keybd_event(0x09, 0, 0, 0) #TAB
+	time.sleep(.1)
 	ctypes.windll.user32.keybd_event(0x09, 0, 2, 0) #~Tab
 	ctypes.windll.user32.keybd_event(0x12, 0, 2, 0) #~Alt
 
@@ -108,26 +139,24 @@ def Menu():
 	# Check in
 	if (selection == '1'):
 		driver = driver.Chrome()
-		AltTab()
 		#driver.set_window_position(-3000, 0)
-		Login()
-		time.sleep(10)
-		CheckIn()
-		time.sleep(10)
+		#driver.set_window_size(500,500)
 		driver.set_window_position(0, 0)
-		time.sleep(20)
+		AltTab()
+		Login()
+		CheckIn()
+		time.sleep(25)
 		LogOut()
 	# Check Out
 	elif (selection == '2'):
 		driver = driver.Chrome()
-		AltTab()
 		#driver.set_window_position(-3000, 0)
-		Login()
-		time.sleep(10)
-		CheckOut()
-		time.sleep(10)
+		#driver.set_window_size(500,500)
 		driver.set_window_position(0, 0)
-		time.sleep(20)
+		AltTab()
+		Login()
+		CheckOut()
+		time.sleep(25)
 		LogOut()
 
 while(True):
