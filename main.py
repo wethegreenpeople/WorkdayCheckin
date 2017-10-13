@@ -19,13 +19,14 @@ tabletProfile = "C:\\Users\\Owner\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\
 email = ""
 driver = ""
 
-def Login():
+def Login(username="", password=""):
 	global driver, email
 	driver = webdriver.Chrome()
 	AltTab()
 	try:
-		username = input("Username: ")
-		password = getpass.getpass()
+		if __name__ == "__main__":
+			username = input("Username: ")
+			password = getpass.getpass()
 		email = username + "@tmcc.edu"
 		os.system("cls")
 		print("Logging In")
@@ -177,8 +178,9 @@ def Menu():
 		time.sleep(25)
 		LogOut()
 
-while(True):
-	Menu()
+if __name__ == "__main__":
+	while(True):
+		Menu()
 
 
 
