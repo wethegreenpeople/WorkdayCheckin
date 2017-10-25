@@ -21,7 +21,7 @@ driver = ""
 
 def Login(username="", password=""):
 	global driver, email
-	driver = webdriver.Chrome()
+	driver = webdriver.Chrome(executable_path="chromedriver.exe")
 	AltTab()
 	try:
 		if __name__ == "__main__":
@@ -58,7 +58,7 @@ def Login(username="", password=""):
 		print("Error. Please try again")
 		Login()
 	
-def CheckIn():
+def CheckIn(hoursType="Student Hours Worked"):
 	global driver
 	print("Navigating to Check in page")
 	# Enter Time page
@@ -80,7 +80,7 @@ def CheckIn():
 		CheckIn()
 	time.sleep(10)
 	actions = ActionChains(driver)
-	actions.send_keys('Student Hours Worked')
+	actions.send_keys(hoursType)
 	actions.perform()
 	actions = ActionChains(driver)
 	actions.send_keys(Keys.ENTER)
@@ -95,6 +95,7 @@ def CheckIn():
 		CheckIn()
 	try:
 		print("Emailing Status")
+		time.sleep(5)
 		checkTime = WebDriverWait(driver, 45).until(EC.presence_of_element_located((By.XPATH, "//div[@id='promptOption-gwt-uid-2']")))
 		print("Last successful checkin: " + checkTime.text)
 		Email(email, checkTime.text)
@@ -129,6 +130,7 @@ def CheckOut():
 		CheckOut()
 	try:
 		print("Emailing Status")
+		time.sleep(5)
 		checkTime = WebDriverWait(driver, 45).until(EC.presence_of_element_located((By.XPATH, "//div[@id='promptOption-gwt-uid-2']")))
 		print("Last successful checkin: " + checkTime.text)
 		Email(email, checkTime.text)
@@ -138,11 +140,15 @@ def CheckOut():
 def LogOut():
 	global driver
 	print("Logging out")
-	driver.find_element_by_class_name("WGMH").click()
-	driver.find_element_by_class_name("WLCI").click()
-	time.sleep(3)
-	driver.close()
-	os.system("cls")
+	try:
+		cloud = WebDriverWait(driver, 45).until(EC.presence_of_element_located((By.XPATH, "//span[@title='My Account']")))
+		cloud.click()
+		signOut = WebDriverWait(driver, 45).until(EC.presence_of_element_located((By.XPATH, "//span[@title='Sign Out']")))
+		signOut.click()
+		time.sleep(3)
+		driver.close()
+	except:
+		print("Could not log out")
 
 def AltTab():
 	ctypes.windll.user32.keybd_event(0x12, 0, 0, 0) #Alt
